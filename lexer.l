@@ -3,7 +3,7 @@
 %}
 %option noyywrap
 
-delim       [\t \n \r \\ \' \" \0]\x{exd}+
+delim       [\t\n\r\\\'\"\0]\x{exd}+
 ws          {delim}+
 l           [A-Za-z]
 exd         [0-9a-f]
@@ -50,9 +50,11 @@ d           [0-9]
 "<-"		{return T_reference;}
 
 {l}         {return T_id;}
-{d}+        {}
+{d}+        {return T_num;}
 
 {ws}        {}
 \'.*\n      {}
+
+.           { printf("%s\n",yytext()); }
 
 %%
