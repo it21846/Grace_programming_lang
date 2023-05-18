@@ -3,10 +3,10 @@
 %}
 %option noyywrap
 
+exd         [0-9a-f]
 delim       [\t\n\r\\\'\"\0]\x{exd}+
 ws          {delim}+
 l           [A-Za-z]
-exd         [0-9a-f]
 d           [0-9]
 
 %%
