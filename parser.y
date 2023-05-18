@@ -8,6 +8,7 @@ void yyerror(const char *msg);
 %}
 
 %token T_id
+%token T_num
 
 %token T_and "and"
 %token T_char "char"
