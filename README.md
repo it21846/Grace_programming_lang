@@ -9,7 +9,7 @@ Requirements for the compiler to run properly are the following:
     flex, 
     bison
 
-To run a program for testing you have to type ./grace < "one of the three .grace files given in this repository".
+To run a program for testing you have to type ./grace < "one of the four .grace files given in this repository".
 
 This Part-1 of the assignment is still under development...
 
