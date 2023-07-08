@@ -1,60 +1,55 @@
 %{
-#include "parser.tab.h"
+#include "parser.h"
 %}
 %option noyywrap
 
-exd         [0-9a-f]
-delim       [\t\n\r\\\'\"\0]\x{exd}+
+delim       [ \t\n\"\0\'\\]
 ws          {delim}+
 l           [A-Za-z]
+word        {l}+
 d           [0-9]
+
+/* Universal Character Name */
+UCN (\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})
+
+charconst  \'([^'\\]|\\['"?\\abfnrtv]|\\[0-7]{1,3}|\\[Xx][0-9a-fA-F]+|{UCN})+\'
+string      L?\"([^"\\]|\\['"?\\abfnrtv]|\\[0-7]{1,3}|\\[Xx][0-9a-fA-F]+|{UCN})*\"
+
 
 %%
 
-"and"		{return T_and;}
-"char"		{return T_char;}
-"div"		{return T_div;}
-"do"		{return T_do;}
-"else"		{return T_else;}
-"fun"		{return T_fun;}
-"if"		{return T_if;}
-"int"		{return T_int;}
-"mod"		{return T_mod;}
-"not"		{return T_not;}
-"nothing"	{return T_nothing;}
-"or"		{return T_or;}
-"ref"		{return T_ref;}
-"return"	{return T_return;}
-"then"		{return T_then;}
-"var"		{return T_var;}
+"if"      { return T_if; }
+"then"    { return T_then; }
+"else"    { return T_else; }
+"do"      { return T_do; }
+"fun"		  {return T_fun;}
 "while"		{return T_while;}
-"="         {return T_eq;}
-"+"         {return T_plus;}
-"-"         {return T_minus;}
-"*"         {return T_mult;}
-"("         {return T_lpar;}
-")"         {return T_rpar;}
-"<="		{return T_leq;}
-">="		{return T_geq;}
-">"			{return T_gt;}
-"<"			{return T_lt;}
-"#"			{return T_hash;}
-"<>"		{return T_neq;}
-"["			{return T_rsqpar;}
-"]"			{return T_lsqpar;}
-"{"			{return T_rcpar;}
-"}"			{return T_lcpar;}
-","			{return T_comma;}
-";"			{return T_semicol;}
-":"			{return T_col;}
-"<-"		{return T_reference;}
+"return"	{return T_return;}
+"int"		  {return T_int;}
+"char"    {return T_char;}
+"nothing"	{return T_nothing;}
+"ref"		  {return T_ref;}
+"var"		  {return T_var;}
+"and"		  {return T_and;}
+"or"		  {return T_or;}
+"not"		  {return T_not;}
+"mod"     {return T_mod;}
 
-{l}         {return T_id;}
-{d}+        {return T_num;}
+"<="		  {return T_leq;}
+">="		  {return T_geq;}
+"<>"		  {return T_neq;}
+"<-"		  {return T_reference;}
 
-{ws}        {}
-\'.*\n      {}
+{ws}      {}
 
-.           { printf("%s\n",yytext()); }
+[=+\-\(\)\{\}\[\]*#/:;!.,<>]  {return yytext[0];}
+
+{word}          { return T_id; }
+{d}+            { return T_num; }
+{charconst}		{return T_charconst;}
+{string}        { return T_string; }
+
+\'.*\n          {}
+.         {fprintf(stderr, "Illegal character: %c (ASCII: %d)\n",yytext[0], yytext[0]);}
 
 %%

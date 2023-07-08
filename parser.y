@@ -3,217 +3,189 @@
 #include <stdlib.h>
 
 int yylex();
-void yyerror(const char *msg);
+void yyerror(char *msg);
 
 %}
 
 %token T_id
 %token T_num
-
-%token T_and "and"
-%token T_char "char"
-%token T_div "div"
-%token T_do "do"
-%token T_else "else"
-%token T_fun "fun"
+%token T_string
+%token T_charconst
 %token T_if "if"
-%token T_int "int"
-%token T_mod "mod"
-%token T_not "not"
-%token T_nothing "nothing"
-%token T_or "or"
-%token T_ref "ref"
-%token T_return "return"
 %token T_then "then"
-%token T_var "var"
+%token T_else "else"
+%token T_do "do"
+%token T_fun "fun"
+%token T_return "return"
 %token T_while "while"
+%token T_char "char"
+%token T_int "int"
+%token T_nothing "nothing"
+%token T_ref "ref"
+%token T_var "var"
+%token T_mod "mod"
+
+%token T_not "not"
+%token T_and "and"
+%token T_or  "or"
 %token T_leq "<="
 %token T_geq ">="
 %token T_neq "<>"
 %token T_reference "<-"
-%token T_eq "="
-%token T_plus "+"  
-%token T_minus "-"         
-%token T_mult "*"         
-%token T_lpar "("          
-%token T_rpar ")"
-%token T_gt ">"		
-%token T_lt "<"			
-%token T_hash "#"			
-%token T_rsqpar "["			
-%token T_lsqpar "]"			
-%token T_rcpar "{"			
-%token T_lcpar "}"			
-%token T_comma ","			
-%token T_semicol ";"			
-%token T_col ":"			
 
-
-%left ","
-%left "<-"
-%left "or"
-%left "and"
-%left "<>" "="
-%left "<" ">" "<=" ">="
-%left "+" "-"
-%left "*" "div" "mod"
+%expect 1
+%left ';' 
 %right "not"
-%left ";"
+%left '*' '/' '#' "mod"
+%left '+' '-'
+%left '<' '>' "<=" ">="
+%left "<>" '='
+%left "and"
+%left "or"
+%left "<-"
+%left ','
 
 %start program
-
 %%
 
 program : func_def
-		;
-
-local_def_list : local_def_list local_def
-			   | local_def
-			   ;
+		    ;
 
 func_def : header local_def_list block
-	 	 ;
+         | header block
+	 	     ;
 
-fpar_def_list : fpar_def_list ";" fpar_def
-			  | fpar_def
-			  ;
-	 
-header : "fun" T_id "(" fpar_def_list ")" ":" ret_type
-	   | "fun" T_id "(" ")" ":" ret_type
+local_def_list : local_def_list local_def
+							 | local_def
+							 ;
+
+header : "fun" T_id '(' fpar_def fpar_def_list ')' ':' ret_type
+       | "fun" T_id '(' fpar_def ')' ':' ret_type
+       | "fun" T_id '(' ')' ':' ret_type
        ;
+       
+fpar_def_list : fpar_def_list ';' fpar_def
+							| ';' fpar_def
+							;
 
-id_list : id_list "," T_id
-		| T_id
-		;
-
-fpar_def : "ref" id_list ":" fpar_type
-		 | id_list ":" fpar_type
-	 	 ;
-
-data_type : "int" 
-		  | "char"
-	  	  ;      
-
-int_const_list : int_const_list "[" int_const "]"
-			   | "[" int_const "]"
-			   ;
+fpar_def : "ref" T_id id_list ':' fpar_type
+		     | T_id id_list ':' fpar_type
+		     | "ref" T_id ':' fpar_type
+		     | T_id ':' fpar_type
+	 	     ;
 
 type : data_type int_const_list
+     | data_type
      ;
 
+data_type : "int" 
+		      | "char"
+	  	    ;
+	  	    
 ret_type : data_type 
-		 | "nothing"
-		 ;
-
-fpar_type : data_type "[" "]" int_const_list
-		  | data_type int_const_list
-		  ;
+		     | "nothing"
+		     ;
 
 local_def : func_def 
-		  | func_decl 
-		  | var_def
-		  ;
+		      | func_decl 
+		      | var_def
+		      ;
 
-var_def : "var" id_list ":" type ";"
+var_def : "var" T_id id_list ':' type ';'
+        | "var" T_id ':' type ';'
         ;
 
-func_decl : header ";"
-	  	  ;
-
-stmt : ";" 
-	 | l_value "<-" expr ";" 
-	 | block 
-	 | func_call ";"
-	 | "if" cond "then" stmt
-	 | "if" cond "then" stmt_withelse "else" stmt
-	 | "while" cond "do" stmt
-	 | "return" expr ";"
-	 | "return" ";"
-	 ;
-
-stmt_withelse : "if" cond "then" stmt_withelse "else" stmt_withelse
-			  ;
-
-stmt_list : stmt_list stmt
-		  | stmt
-		  ;
-
-block : "{" stmt_list "}"
-	  | "{""}"
-	  ;
-
-expr_list : expr_list "," expr
-		  | expr
-		  ;
-
-func_call : T_id "(" expr_list ")"
-		  | T_id "("")"
-		  ;
-
-l_value : T_id 
-		| string_literal 
-		| l_value "[" expr "]"
-		;
-
-prefix_expr : "+" expr
-			| "-" expr
-			;
-
-arithmetic_expr : expr "+" expr
-				| expr "-" expr
-				| expr "*" expr
-				| expr "div" expr
-				| expr "mod" expr
+id_list : id_list ',' T_id
+				| ',' T_id
 				;
 
-expr : int_const 
-	 | char_const
-	 | l_value 
-	 | func_call 
-	 | "(" expr ")"
-	 | prefix_expr 
-	 | arithmetic_expr
-	 ;
+func_decl : header ';'
+	  	    ;
+	  	    
+fpar_type : data_type '[' ']' int_const_list
+          | data_type int_const_list
+          | data_type '[' ']'
+          | data_type
+		      ;
 
-logical_cond : cond "and" cond
-			 | cond "or" cond
-			 ;
+int_const_list : int_const_list '[' T_num ']'
+							 | '[' T_num ']'
+							 ;
 
-arithmetic_cond : expr "=" expr
-				| expr "#" expr
-				| expr "<" expr
-				| expr ">" expr
-				| expr "<=" expr
-				| expr ">=" expr
-				| expr "<>" expr
-				;
+stmtlst : stmtlst stmt
+        | stmt
+        ;
 
-cond : "(" cond ")"
-	 | "not" cond
-	 | logical_cond
-	 | arithmetic_cond
-	 ;
+func_call : T_id  '(' expr expr_list ')'
+          | T_id  '(' expr ')'
+		      | T_id  '(' ')'
+		      ;
 
-int_const : "int"
-		  ;
+expr_list : expr_list ',' expr
+					| ',' expr
+					;
 
-string_literal : string_literal char_const
-			   | char_const
-			   ;
+l_value : T_id
+				| T_string
+				| T_charconst
+		    | l_value '[' expr ']'
+		    ;
 
-char_const : "char"
-		   ;
+stmt : ';' 
+	   | l_value "<-" expr ';' 
+	   | block 
+	   | var_def
+	   | func_call ';'
+	   | "if" cond "then" stmt
+	   | "if" cond "then" stmt "else" stmt
+	   | "while" cond "do" stmt
+	   | "return" expr ';'
+	   | "return" ';'
+	   ;
+
+block : '{' stmtlst '}'
+      | '{''}'
+	    ;
+
+expr : expr '+' expr
+     | expr '-' expr
+     | expr '*' expr
+     | expr '/' expr
+		 | expr "mod" expr 
+     | l_value 
+	   | func_call
+     | '(' expr ')'
+     | T_num
+		 | '+' T_num
+		 | '-' T_num
+     ;
+
+cond : '(' cond ')'
+	   | "not" cond
+	   | cond "and" cond
+	   | cond "or" cond
+	   | expr '=' expr
+     | expr '#' expr
+	   | expr '<' expr
+	   | expr '>' expr
+	   | expr "<=" expr
+	   | expr ">=" expr
+	   | expr "<>" expr
+	   ;
 
 %%
 
+void yyerror(char *msg) {
+  fprintf(stderr, "%s\n", msg);
+  exit(1);
+}
+
 int main() {
+  int result = yyparse();
+  if (result == 0) 
+    printf("Success.\n");
+  else
+    printf("Failure.\n");
 
-    int result = yyparse();
-    
-	if (result == 0) 
-		printf("Success.\n");
-    else
-		printf("Failure.\n");
-
-	return result;
+  return result;
 }
